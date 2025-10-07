@@ -5,18 +5,29 @@ public class RecordListItem {
     private String from;
     private String to;
     private String title;
+    private long sizeBytes;
 
     public RecordListItem(String timestamp, String from, String to, String title) {
         this.timestamp = timestamp;
         this.from = from;
         this.to = to;
         this.title = title;
+        this.sizeBytes = -1L;
+    }
+
+    public RecordListItem(String timestamp, String from, String to, String title, long sizeBytes) {
+        this.timestamp = timestamp;
+        this.from = from;
+        this.to = to;
+        this.title = title;
+        this.sizeBytes = sizeBytes;
     }
 
     public String getTimestamp() { return timestamp; }
     public String getFrom() { return from; }
     public String getTo() { return to; }
     public String getTitle() { return title; }
+    public long getSizeBytes() { return sizeBytes; }
 
     @Override
     public String toString() {

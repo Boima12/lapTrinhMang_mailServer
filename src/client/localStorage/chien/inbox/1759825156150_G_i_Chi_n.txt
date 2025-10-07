@@ -1,0 +1,5 @@
+TIMESTAMP=2025-10-07 15:19:16
+FROM=bao@gmail.com
+TO=chien@gmail.com
+TITLE=Gửi Chiến
+CONTENT=Chiến có khoẻ không

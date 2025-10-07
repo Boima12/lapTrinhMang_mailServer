@@ -1,0 +1,5 @@
+TIMESTAMP=2025-10-07 15:32:16
+FROM=bao@gmail.com
+TO=chien@gmail.com
+TITLE=Tạm biệt
+CONTENT=tam biet nhé

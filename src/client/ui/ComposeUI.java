@@ -24,6 +24,7 @@ public class ComposeUI {
 	private JTextArea textArea;
 	private JButton btnSend;
 	private JButton discardBt;
+	private java.util.function.Function<String[], Boolean> sendHandler;
 
 	/**
 	 * Launch the application.
@@ -47,13 +48,13 @@ public class ComposeUI {
 		initialize();
 	}
 	
-    public void display() { 
-    	frame.setVisible(true); 
-    }
-    
-    public void undisplay() {
-    	frame.setVisible(false);
-    }
+	public void display() { 
+		frame.setVisible(true); 
+	}
+	
+	public void undisplay() {
+		frame.setVisible(false);
+	}
 
 	private void initialize() {
 		frame = new JFrame();
@@ -62,10 +63,10 @@ public class ComposeUI {
 		frame.setTitle("Write a mail");
 		frame.getContentPane().setLayout(null);
 		
-		JLabel title = new JLabel("Title");
-		title.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
-		title.setBounds(10, 10, 119, 24);
-		frame.getContentPane().add(title);
+		JLabel titleLb = new JLabel("Title");
+		titleLb.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
+		titleLb.setBounds(10, 10, 119, 24);
+		frame.getContentPane().add(titleLb);
 		
 		titleTf = new JTextField();
 		titleTf.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
@@ -97,6 +98,17 @@ public class ComposeUI {
 		btnSend = new JButton("Send");
 		btnSend.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
 		btnSend.setBounds(1056, 95, 120, 35);
+		btnSend.addActionListener(e -> {
+			String title = titleTf.getText().trim();
+			String to = toAddressTf.getText().trim();
+			String content = textArea.getText();
+			if (sendHandler != null) {
+				Boolean ok = sendHandler.apply(new String[]{to, title, content});
+				if (Boolean.TRUE.equals(ok)) {
+					undisplay();
+				}
+			}
+		});
 		frame.getContentPane().add(btnSend);
 		
 		discardBt = new JButton("");
@@ -105,10 +117,10 @@ public class ComposeUI {
 		discardBt.setIcon(new ImageIcon(new ImageIcon(ComposeUI.class.getResource("../assets/discardMessage.png")).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH)));
 		frame.getContentPane().add(discardBt);
 	}
-	
-//	public void refreshFields() {
-//		titleTf.setText("");
-//		toAddressTf.setText("");
-//		textArea.setText("");
-//	}
+
+	public void setOnSend(java.util.function.Function<String[], Boolean> handler) {
+		this.sendHandler = handler;
+	}
 }
+
+

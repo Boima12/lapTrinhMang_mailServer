@@ -1,0 +1,2 @@
+username=truc@gmail.com
+password=123

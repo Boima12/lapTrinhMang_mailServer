@@ -21,6 +21,9 @@ import java.awt.event.MouseEvent;
 
 
 import com.formdev.flatlaf.FlatLightLaf;
+import server.util.SearchUtils;
+import java.util.ArrayList;
+import java.util.List;
 import server.model.RecordListItem;
 import server.model.RecordListCellRenderer;
 
@@ -40,6 +43,7 @@ public class ServerUI {
 	private DefaultListModel<RecordListItem> recordListModel;
 	private JList<RecordListItem> recordList;
 	private JLabel totalRecordLb;
+	private final List<RecordListItem> allRecords = new ArrayList<>();
 	
 
 	/**
@@ -62,48 +66,20 @@ public class ServerUI {
 
 	public ServerUI() {
 		initialize();
-		
-		// delete later
-		addRecordListItem("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "This is record list");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "This is record_search list");
-		
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
+        // Lắng nghe sự kiện overview và hiển thị theo thời gian thực
+        OverviewBus.subscribe((timestamp, from, to, title, sizeBytes) -> {
+            RecordListItem item = new RecordListItem(timestamp, from, to, title, sizeBytes);
+			allRecords.add(item);
+			recordListModel.addElement(item);
+			totalRecordLb.setText("Total record(s): " + recordListModel.getSize());
+		});
 	}
 	
 	public void display() {
 		frame.setVisible(true);
 	}
+
+    // Removed file loading; overview is provided by OverviewBus during runtime
 
 	private void initialize() {
 		frame = new JFrame();
@@ -153,17 +129,14 @@ public class ServerUI {
 		            int index = recordList.locationToIndex(e.getPoint());
 		            if (index >= 0) {
 		                RecordListItem selected = recordListModel.getElementAt(index);
-
-		                // For now, assume you have a dummy size
-		                String size = "27 KB"; 
-		                
+                String sizeStr = FormatUtils.formatSize(selected.getSizeBytes());
 		                DetailsDialog.showDetails(
 		                    frame, 
 		                    selected.getTitle(), 
 		                    selected.getFrom(), 
 		                    selected.getTo(), 
 		                    selected.getTimestamp(), 
-		                    size
+		                    sizeStr
 		                );
 		            }
 		        }
@@ -201,6 +174,7 @@ public class ServerUI {
 		searchUserBt.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
 		searchUserBt.setBounds(115, 75, 120, 30);
 		searchByNamePanel.add(searchUserBt);
+		searchUserBt.addActionListener(e -> doSearchByUser());
 		
 		JPanel searchByTitlePanel = new JPanel();
 		searchByTitlePanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
@@ -223,6 +197,7 @@ public class ServerUI {
 		searchTitleBt.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
 		searchTitleBt.setBounds(115, 75, 120, 30);
 		searchByTitlePanel.add(searchTitleBt);
+		searchTitleBt.addActionListener(e -> doSearchByTitle());
 		
 		JPanel searchByTimePanel = new JPanel();
 		searchByTimePanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
@@ -245,6 +220,7 @@ public class ServerUI {
 		searchTitleBt_1.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
 		searchTitleBt_1.setBounds(326, 77, 120, 30);
 		searchByTimePanel.add(searchTitleBt_1);
+		searchTitleBt_1.addActionListener(e -> doSearchByTime());
 		
 		JLabel searchByTimeStartLb = new JLabel("Start");
 		searchByTimeStartLb.setFont(new Font("Sans Serif Collection", Font.PLAIN, 14));
@@ -289,23 +265,46 @@ public class ServerUI {
 		            int index = recordList_search.locationToIndex(e.getPoint());
 		            if (index >= 0) {
 		                RecordListItem selected = recordListModel_search.getElementAt(index);
-
-		                // For now, assume you have a dummy size
-		                String size = "27 KB"; 
-		                
+                String sizeStr = FormatUtils.formatSize(selected.getSizeBytes());
 		                DetailsDialog.showDetails(
 		                    frame, 
 		                    selected.getTitle(), 
 		                    selected.getFrom(), 
 		                    selected.getTo(), 
 		                    selected.getTimestamp(), 
-		                    size
+		                    sizeStr
 		                );
 		            }
 		        }
 		    }
-		});
-	}
+        });
+
+    }
+
+    // Tìm kiếm theo user (FROM/TO chứa chuỗi)
+    private void doSearchByUser() {
+        String q = searchUserTf.getText().trim();
+        renderSearchList(SearchUtils.filterByUser(allRecords, q));
+    }
+
+    // Tìm kiếm theo tiêu đề (không phân biệt hoa thường)
+    private void doSearchByTitle() {
+        String q = searchTitleTf.getText().trim();
+        renderSearchList(SearchUtils.filterByTitle(allRecords, q));
+    }
+
+    // Tìm theo thời gian (so sánh chuỗi timestamp)
+    private void doSearchByTime() {
+        String s = searchByTimeStartTf.getText().trim();
+        String e = searchByTimeEndTf.getText().trim();
+        renderSearchList(SearchUtils.filterByTime(allRecords, s, e));
+    }
+
+    private void renderSearchList(java.util.List<RecordListItem> items) {
+        recordListModel_search.clear();
+        for (RecordListItem it : items) recordListModel_search.addElement(it);
+        totalRecordLb_search.setText("Total record(s): " + recordListModel_search.getSize());
+    }
 	
 	public void addRecordListItem(String timestamp, String from, String to, String title) {
 		recordListModel.addElement(new RecordListItem(timestamp, from, to, title));

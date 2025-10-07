@@ -27,6 +27,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import client.model.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ClientUI {
 
@@ -67,12 +70,6 @@ public class ClientUI {
 
 	public ClientUI() {
 		initialize();
-		
-		// delete later
-		addInboxListItem("This is inbox list", "Boima@mailServer.com", "5:46 06/10/2025");
-		addInboxListItem("title sample", "Boima@mailServer.com", "5:46 06/10/2025");
-		addSentListItem("This is sent list", "Boima@mailServer.com", "5:46 06/10/2025");
-		addSentListItem("title sample", "Boima@mailServer.com", "5:46 06/10/2025");
 	}
 	
     public void display() { 
@@ -101,6 +98,12 @@ public class ClientUI {
             handleLogout();
         });
         menuHome.add(menuLogout);
+
+		JMenuItem menuSync = new JMenuItem("Sync");
+		menuSync.addActionListener(e -> {
+			try { if (syncFromServer != null) syncFromServer.run(); } catch (Exception ignored) {}
+		});
+		menuHome.add(menuSync);
 		
         // Main content
 		JPanel leftPanel = new JPanel();
@@ -159,15 +162,12 @@ public class ClientUI {
 		inboxListScrollPane.setBorder(null); 
 		inboxListScrollPane.setVisible(true);
 		leftPanel.add(inboxListScrollPane);
-		// Add listener for clicks
+        // Khi chọn thư ở Inbox -> hiển thị nội dung bên phải
 		inboxList.addListSelectionListener(e -> {
 		    if (!e.getValueIsAdjusting()) {
 		        MailListItem selected = inboxList.getSelectedValue();
 		        if (selected != null) {
-		            System.out.println("Clicked item:");
-		            System.out.println("Title: " + selected.getTitle());
-		            System.out.println("From: " + selected.getFrom());
-		            System.out.println("Timestamp: " + selected.getTimestamp() + "\n");
+                    ClientUIHelper.showMailContent(currentUser, "inbox", selected, header_title, header_from, header_timestamp, bodyTa);
 		        }
 		    }
 		});
@@ -182,15 +182,12 @@ public class ClientUI {
 		sentListScrollPane.setBorder(null);
 		sentListScrollPane.setVisible(false);
 		leftPanel.add(sentListScrollPane);
-		// Add listener for clicks
+        // Khi chọn thư ở Sent -> hiển thị nội dung bên phải
 		sentList.addListSelectionListener(e -> {
 		    if (!e.getValueIsAdjusting()) {
 		        MailListItem selected = sentList.getSelectedValue();
 		        if (selected != null) {
-		            System.out.println("Clicked item:");
-		            System.out.println("Title: " + selected.getTitle());
-		            System.out.println("From: " + selected.getFrom());
-		            System.out.println("Timestamp: " + selected.getTimestamp() + "\n");
+                    ClientUIHelper.showMailContent(currentUser, "sent", selected, header_title, header_from, header_timestamp, bodyTa);
 		        }
 		    }
 		});
@@ -242,8 +239,48 @@ public class ClientUI {
 	    this.onLogout = onLogout;
 	}
 	
+    private String currentUser = "";
+    private client.core.UdpApiClient apiClient;
+	private Runnable syncFromServer;
+
+    public void setCurrentUser(String username) { this.currentUser = username; }
+    public void setApi(client.core.UdpApiClient apiClient) { this.apiClient = apiClient; }
+	public void setSyncFromServer(Runnable r) { this.syncFromServer = r; }
+
 	public void showComposeUi() {
 		ComposeUI composeUi = new ComposeUI();
+		composeUi.setOnSend(args -> {
+			String to = args[0];
+			String title = args[1];
+			String content = args[2];
+			// delegate to a global app hook if available
+			try {
+                client.core.UdpApiClient api = this.apiClient;
+				if (api == null) return false;
+				String from = currentUser == null ? "unknown" : currentUser;
+				boolean ok = api.send(from, to, title, content);
+				if (ok) {
+					// write to localStorage/sent and update UI immediately
+					long ts = System.currentTimeMillis();
+					String tsStr = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(ts));
+					String safeTitle = title.replaceAll("[^a-zA-Z0-9._-]", "_");
+					String filename = ts + "_" + safeTitle + ".txt";
+                    Path root = Path.of("src", "client", "localStorage", ClientUIHelper.toLocalName(currentUser));
+                    Files.createDirectories(root.resolve("sent"));
+					java.util.List<String> lines = new java.util.ArrayList<>();
+					lines.add("TIMESTAMP=" + tsStr);
+					lines.add("FROM=" + from);
+					lines.add("TO=" + to);
+					lines.add("TITLE=" + title);
+					lines.add("CONTENT=" + content);
+                    Files.write(root.resolve("sent").resolve(filename), lines, StandardCharsets.UTF_8);
+					addSentListItem(title, from, tsStr);
+				}
+				return ok;
+			} catch (Exception e) {
+				return false;
+			}
+		});
 		composeUi.display();
 	}
 	
@@ -254,6 +291,12 @@ public class ClientUI {
 	public void addSentListItem(String title, String from, String timestamp) {
 		sentListModel.addElement(new MailListItem(title, from, timestamp));
 	}
+
+	public void clearLists() {
+		inboxListModel.clear();
+		sentListModel.clear();
+	}
+
 	
 	public void handleLogout() {
 		// TODO delete everything inside localStorage folder for this client (yeah we do support multiple clients)

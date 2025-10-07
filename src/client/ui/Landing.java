@@ -17,6 +17,9 @@ import javax.swing.JButton;
 public class Landing {
 
 	private Runnable onLoginOrRegisterSuccess;
+    public interface AuthHandler { boolean handle(String username, String password); }
+    private AuthHandler loginHandler;
+    private AuthHandler registerHandler;
 	
 	private JFrame frame;
 	private JButton loginBt;
@@ -45,10 +48,12 @@ public class Landing {
 	}
 
     public void display() { 
+    	// Hiển thị cửa sổ Landing
     	frame.setVisible(true); 
     }
     
     public void undisplay() {
+    	// Ẩn cửa sổ Landing (chuyển sang màn hình khác)
     	frame.setVisible(false);
     }
 
@@ -94,13 +99,9 @@ public class Landing {
 	public void showLoginDialog() {
 	    String[] credentials = LoginDialog.askForLogin(frame);
 	    if (credentials != null) {
-	        String username = credentials[0];
+            String username = ensureEmail(credentials[0]);
 	        String password = credentials[1];
-	        System.out.println("Login as: " + username + " / " + password);
-	        
-	        // TODO send login credentials to server to check if account is valid
-	        boolean valid = true; // assume valid for now
-	        
+            boolean valid = loginHandler != null && loginHandler.handle(username, password);
 	        if (valid && onLoginOrRegisterSuccess != null) {
 	            onLoginOrRegisterSuccess.run();
 	        }
@@ -110,15 +111,9 @@ public class Landing {
 	public void showRegisterDialog() {
 	    String[] credentials = RegisterDialog.askForRegister(frame);
 	    if (credentials != null) {
-	        String username = credentials[0];
+            String username = ensureEmail(credentials[0]);
 	        String password = credentials[1];
-	        System.out.println("Register new user: " + username + " / " + password);
-	        
-	        // TODO send register credentials to server to register new account
-	        // if server return signal "accountCreated", then proceed to open ClientUI.java
-	        
-	        boolean accountCreated = true; // assume valid for now
-	        
+            boolean accountCreated = registerHandler != null && registerHandler.handle(username, password);
 	        if (accountCreated && onLoginOrRegisterSuccess != null) {
 	        	onLoginOrRegisterSuccess.run();
 	        }
@@ -128,5 +123,14 @@ public class Landing {
 	public JFrame getFrame() {
 	    return frame;
 	}
+
+    public void setLoginHandler(AuthHandler loginHandler) { this.loginHandler = loginHandler; }
+    public void setRegisterHandler(AuthHandler registerHandler) { this.registerHandler = registerHandler; }
+
+    private String ensureEmail(String input) {
+        String s = input == null ? "" : input.trim();
+        if (s.isEmpty()) return s;
+        return s.contains("@") ? s : s + "@gmail.com";
+    }
 }
 
