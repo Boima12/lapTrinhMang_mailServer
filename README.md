@@ -1,8 +1,6 @@
 # Java mail server using UDP protocol
 
-- just for learning purpose, this project is building a Java mail server app using UDP protocol, the app doesn't implement a proper database but just a file saving methods
-
-- using flatlaf UI and gson (probably, if Chien implements it :>), so make sure you import two .jar files that i attach within the projects before running the program (they are in libraries folder)
+- just for learning purpose, this project is building a Java mail server app follows SMTP protocol, this app doesn't implement a proper database but just a file saving methods
 
 
 ### how to run

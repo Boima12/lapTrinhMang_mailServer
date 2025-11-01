@@ -1,0 +1,14 @@
+TITLE=Greeting
+FROM=Boima
+FROM_IP=192.168.1.9
+TO=Chien@mailServer.com
+TIMESTAMP=02-11-2025 05:13:43
+CONTENT=
+Dear Chien,
+
+I am going to finish this project.
+
+If you have any question, mail me and i will try to response as soon as possible
+
+Best regard,
+Boima

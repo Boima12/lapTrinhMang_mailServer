@@ -1,9 +1,6 @@
 package client.ui;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
-import javax.swing.UIManager;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.DefaultListModel;
@@ -11,14 +8,20 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.Font;
 import java.awt.Image;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JLabel;
 import java.awt.Color;
 import javax.swing.SwingConstants;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.SoftBevelBorder;
-
-import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.border.BevelBorder;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -27,10 +30,17 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import client.model.*;
+import client.network.SmtpClient;
+import shared.FileNameEncryptor;
+import javax.swing.border.LineBorder;
 
 public class ClientUI {
 
 	private Runnable onLogout;
+	private Runnable onExit;
+	private String accountName;
+	private String serverIP;
+	private String serverPort;
 	
 	private JFrame frame;
 	private JButton inboxTypeBt;
@@ -48,31 +58,32 @@ public class ClientUI {
 	private JScrollPane sentListScrollPane;
 
 	/**
-	 * Launch the application.
+	 * Launch the application. (disabled due to ClientUI will request accountName folder data from server, this part is safe to delete)
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(new FlatLightLaf());
+//	public static void main(String[] args) {
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//				try {
+//					UIManager.setLookAndFeel(new FlatLightLaf());
+//
+//					ClientUI window = new ClientUI("DEV ONLY!");
+//					window.frame.setVisible(true);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//	}
 
-					ClientUI window = new ClientUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	public ClientUI() {
-		initialize();
+	public ClientUI(String serverIP, String serverPort, String accountName) {
+		this.accountName = accountName;
+		this.serverIP = serverIP;
+		this.serverPort = serverPort;
 		
-		// delete later
-		addInboxListItem("This is inbox list", "Boima@mailServer.com", "5:46 06/10/2025");
-		addInboxListItem("title sample", "Boima@mailServer.com", "5:46 06/10/2025");
-		addSentListItem("This is sent list", "Boima@mailServer.com", "5:46 06/10/2025");
-		addSentListItem("title sample", "Boima@mailServer.com", "5:46 06/10/2025");
+		initialize();
+		requestFolderData(serverIP, serverPort);
+		loadInboxList();
+		loadSentList();
 	}
 	
     public void display() { 
@@ -86,9 +97,17 @@ public class ClientUI {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1200, 700);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setTitle("Mail server client");
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.setTitle("Mail server client - " + accountName);
 		frame.getContentPane().setLayout(null);
+		
+		// Handle window close (X button)
+		frame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent e) {
+		        handleExit();
+		    }
+		});
 		
         // JmenuBar
         JMenuBar menuBar = new JMenuBar();
@@ -96,11 +115,23 @@ public class ClientUI {
         menuBar.add(menuHome);
         frame.setJMenuBar(menuBar);
         
+        JMenuItem menuRefresh = new JMenuItem("Refresh");
+        menuRefresh.addActionListener(e -> {
+            refreshData();
+        });
+        menuHome.add(menuRefresh);
+        
         JMenuItem menuLogout = new JMenuItem("Logout");
         menuLogout.addActionListener(e -> {
             handleLogout();
         });
         menuHome.add(menuLogout);
+        
+        JMenuItem menuExit = new JMenuItem("Exit");
+        menuExit.addActionListener(e -> {
+            handleExit();
+        });
+        menuHome.add(menuExit);
 		
         // Main content
 		JPanel leftPanel = new JPanel();
@@ -164,14 +195,17 @@ public class ClientUI {
 		    if (!e.getValueIsAdjusting()) {
 		        MailListItem selected = inboxList.getSelectedValue();
 		        if (selected != null) {
-		            System.out.println("Clicked item:");
-		            System.out.println("Title: " + selected.getTitle());
-		            System.out.println("From: " + selected.getFrom());
-		            System.out.println("Timestamp: " + selected.getTimestamp() + "\n");
+		        	String encryptedName = FileNameEncryptor.encryptFileName(selected.getTitle());
+		        	File mailFile = new File("src/client/localStorage/" + accountName + "/inbox/" + encryptedName + ".txt");
+		            if (mailFile.exists()) {
+		                displayMailDetails(mailFile, true);
+		            } else {
+		                JOptionPane.showMessageDialog(frame, "Mail file not found for: " + selected.getTitle(),
+		                        "Missing File", JOptionPane.WARNING_MESSAGE);
+		            }
 		        }
 		    }
 		});
-		
 		
 		sentListModel = new DefaultListModel<>();
 		sentList = new JList<>(sentListModel);
@@ -187,14 +221,17 @@ public class ClientUI {
 		    if (!e.getValueIsAdjusting()) {
 		        MailListItem selected = sentList.getSelectedValue();
 		        if (selected != null) {
-		            System.out.println("Clicked item:");
-		            System.out.println("Title: " + selected.getTitle());
-		            System.out.println("From: " + selected.getFrom());
-		            System.out.println("Timestamp: " + selected.getTimestamp() + "\n");
+		        	String encryptedName = FileNameEncryptor.encryptFileName(selected.getTitle());
+		        	File mailFile = new File("src/client/localStorage/" + accountName + "/sent/" + encryptedName + ".txt");
+		            if (mailFile.exists()) {
+		                displayMailDetails(mailFile, false);
+		            } else {
+		                JOptionPane.showMessageDialog(frame, "Mail file not found for: " + selected.getTitle(),
+		                        "Missing File", JOptionPane.WARNING_MESSAGE);
+		            }
 		        }
 		    }
 		});
-		
 		
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(null);
@@ -202,7 +239,7 @@ public class ClientUI {
 		frame.getContentPane().add(rightPanel);
 		
 		JPanel header = new JPanel();
-		header.setBorder(null);
+		header.setBorder(new LineBorder(new Color(0, 0, 0)));
 		header.setBounds(0, 10, 896, 80);
 		header.setLayout(null);
 		rightPanel.add(header);
@@ -226,25 +263,163 @@ public class ClientUI {
 		header.add(header_timestamp);
 		
 		JPanel body = new JPanel();
+		body.setBorder(new LineBorder(new Color(0, 0, 0)));
 		body.setBounds(0, 100, 896, 563);
 		body.setLayout(null);
 		rightPanel.add(body);
 		
 		bodyTa = new JTextArea();
-		bodyTa.setBackground(new Color(243, 243, 243));
+//		bodyTa.setBackground(new Color(243, 243, 243));
+		bodyTa.setBackground(new Color(255, 255, 255));
 		bodyTa.setLineWrap(true);
 		bodyTa.setEditable(false);
 		bodyTa.setBounds(0, 0, 896, 563);
 		body.add(bodyTa);
 	}
 	
+	private void refreshData() {
+		requestFolderData(serverIP, serverPort);
+		loadInboxList();
+		loadSentList();
+	}
+	
+	private void requestFolderData(String serverIP, String serverPort) {
+		try (SmtpClient smtp = new SmtpClient(serverIP, Integer.parseInt(serverPort))) {
+			smtp.requestFolderData(accountName);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "Cannot reach server (cannot request account data)", "Network Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+	}
+	
 	public void setOnLogout(Runnable onLogout) {
 	    this.onLogout = onLogout;
 	}
 	
+	public void setOnExit(Runnable onExit) {
+	    this.onExit = onExit;
+	}
+	
 	public void showComposeUi() {
-		ComposeUI composeUi = new ComposeUI();
+		ComposeUI composeUi = new ComposeUI(serverIP, serverPort, accountName);
 		composeUi.display();
+	}
+	
+	public void loadInboxList() {
+	    inboxListModel.clear();
+	    File inboxDir = new File("src/client/localStorage/" + accountName + "/inbox");
+
+	    if (!inboxDir.exists() || !inboxDir.isDirectory()) {
+	        System.err.println("Inbox folder not found: " + inboxDir.getAbsolutePath());
+	        return;
+	    }
+
+	    File[] mailFiles = inboxDir.listFiles((dir, name) -> name.endsWith(".txt"));
+	    if (mailFiles == null) return;
+
+	    for (File mailFile : mailFiles) {
+	        try (BufferedReader reader = new BufferedReader(new FileReader(mailFile))) {
+	            Map<String, String> mailData = parseMailFile(reader);
+	            String title = mailData.getOrDefault("TITLE", mailFile.getName());
+	            String from = mailData.getOrDefault("FROM", "unknown@mailServer.com");
+	            String timestamp = mailData.getOrDefault("TIMESTAMP",
+	                    new SimpleDateFormat("HH:mm dd/MM/yyyy").format(new Date(mailFile.lastModified())));
+
+	            addInboxListItem(title, from + "@mailServer.com", timestamp);
+
+	        } catch (Exception e) {
+	            System.err.println("Error reading mail file: " + mailFile.getName());
+	            e.printStackTrace();
+	        }
+	    }
+	}
+
+	public void loadSentList() {
+	    sentListModel.clear();
+	    File sentDir = new File("src/client/localStorage/" + accountName + "/sent");
+
+	    if (!sentDir.exists() || !sentDir.isDirectory()) {
+	        System.err.println("Sent folder not found: " + sentDir.getAbsolutePath());
+	        return;
+	    }
+
+	    File[] mailFiles = sentDir.listFiles((dir, name) -> name.endsWith(".txt"));
+	    if (mailFiles == null) return;
+
+	    for (File mailFile : mailFiles) {
+	        try (BufferedReader reader = new BufferedReader(new FileReader(mailFile))) {
+	            Map<String, String> mailData = parseMailFile(reader);
+	            String title = mailData.getOrDefault("TITLE", mailFile.getName());
+	            String to = mailData.getOrDefault("TO", "unknown@mailServer.com");
+	            String timestamp = mailData.getOrDefault("TIMESTAMP",
+	                    new SimpleDateFormat("HH:mm dd/MM/yyyy").format(new Date(mailFile.lastModified())));
+
+	            addSentListItem(title, to + "@mailServer.com", timestamp);
+
+	        } catch (Exception e) {
+	            System.err.println("Error reading sent mail file: " + mailFile.getName());
+	            e.printStackTrace();
+	        }
+	    }
+	}
+
+	/**
+	 * Parses a mail file with structure:
+	 * TITLE=...
+	 * FROM=...
+	 * FROM_IP=...
+	 * TO=...
+	 * TIMESTAMP=...
+	 * CONTENT=
+	 * <multiline body>
+	 */
+	private Map<String, String> parseMailFile(BufferedReader reader) throws Exception {
+	    Map<String, String> data = new HashMap<>();
+	    String line;
+	    StringBuilder contentBuilder = new StringBuilder();
+
+	    boolean contentMode = false;
+	    while ((line = reader.readLine()) != null) {
+	        if (contentMode) {
+	            contentBuilder.append(line).append(System.lineSeparator());
+	        } else if (line.startsWith("CONTENT=")) {
+	            contentMode = true;
+	        } else if (line.contains("=")) {
+	            int eq = line.indexOf('=');
+	            String key = line.substring(0, eq).trim();
+	            String value = line.substring(eq + 1).trim();
+	            data.put(key, value);
+	        }
+	    }
+
+	    if (contentBuilder.length() > 0) {
+	        data.put("CONTENT", contentBuilder.toString().trim());
+	    }
+
+	    return data;
+	}
+	
+	private void displayMailDetails(File mailFile, boolean isInbox) {
+	    try (BufferedReader reader = new BufferedReader(new FileReader(mailFile))) {
+	        Map<String, String> mailData = parseMailFile(reader);
+
+	        String title = mailData.getOrDefault("TITLE", "(No Title)");
+	        String from = mailData.getOrDefault("FROM", "unknown@mailServer.com");
+	        String to = mailData.getOrDefault("TO", "unknown@mailServer.com");
+	        String timestamp = mailData.getOrDefault("TIMESTAMP", "Unknown Date");
+	        String content = mailData.getOrDefault("CONTENT", "(No Content)");
+
+	        header_title.setText(title);
+	        header_from.setText(isInbox ? ("From: " + from + "@mailServer.com") : ("To: " + to + "@mailServer.com"));
+	        header_timestamp.setText(timestamp);
+	        bodyTa.setText(content);
+
+	    } catch (Exception e) {
+	        JOptionPane.showMessageDialog(frame, "Error reading email file: " + mailFile.getName(),
+	                "File Read Error", JOptionPane.ERROR_MESSAGE);
+	        e.printStackTrace();
+	    }
 	}
 	
 	public void addInboxListItem(String title, String from, String timestamp) {
@@ -255,9 +430,7 @@ public class ClientUI {
 		sentListModel.addElement(new MailListItem(title, from, timestamp));
 	}
 	
-	public void handleLogout() {
-		// TODO delete everything inside localStorage folder for this client (yeah we do support multiple clients)
-		
+	public void handleLogout() {	
 	    int confirm = JOptionPane.showConfirmDialog(
 	        frame,
 	        "Are you sure you want to log out?",
@@ -265,11 +438,26 @@ public class ClientUI {
 	        JOptionPane.YES_NO_OPTION
 	    );
 
-	    if (confirm == JOptionPane.YES_OPTION) {
-	    	
+	    if (confirm == JOptionPane.YES_OPTION) {   	
 	        frame.dispose(); 
 	        if (onLogout != null) {
 	            onLogout.run(); // Trigger callback
+	        }
+	    }
+	}
+	
+	public void handleExit() {
+	    int confirm = JOptionPane.showConfirmDialog(
+	        frame,
+	        "Are you sure you want to log out and exit the program?",
+	        "Confirm Logout",
+	        JOptionPane.YES_NO_OPTION
+	    );
+
+	    if (confirm == JOptionPane.YES_OPTION) {   	
+	        frame.dispose(); 
+	        if (onExit != null) {
+	            onExit.run(); // Trigger callback
 	        }
 	    }
 	}

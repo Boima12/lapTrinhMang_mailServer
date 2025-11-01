@@ -1,0 +1,12 @@
+TITLE=Welcome to mailServer!
+FROM=The MailServer Team
+FROM_IP=192.168.1.9
+TO=Boima3
+TIMESTAMP=01-11-2025 20:50:50
+CONTENT=
+Dear User,
+
+Thank you for joining our email service. We’re excited to have you onboard!
+
+We hope you’ll find SimpleMail easy, secure, and reliable for all your communication needs.  
+If you encounter any issues or have suggestions, feel free to reach out — we’re always happy to help.

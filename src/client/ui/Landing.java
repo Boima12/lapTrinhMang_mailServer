@@ -5,18 +5,24 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
+import java.io.IOException;
 
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
+import client.network.SmtpClient;
+import client.ui.listeners.LoginSuccessListener;
+
 import javax.swing.JButton;
 
 public class Landing {
 
-	private Runnable onLoginOrRegisterSuccess;
+	private LoginSuccessListener onLoginOrRegisterSuccess;
 	
 	private JFrame frame;
 	private JButton loginBt;
@@ -87,22 +93,35 @@ public class Landing {
 		landingPanel.add(registerBt);
 	}
 		
-	public void setOnLoginOrRegisterSuccess(Runnable callback) {
+	public void setOnLoginOrRegisterSuccess(LoginSuccessListener callback) {
 	    this.onLoginOrRegisterSuccess = callback;
 	}
 	
 	public void showLoginDialog() {
 	    String[] credentials = LoginDialog.askForLogin(frame);
 	    if (credentials != null) {
-	        String username = credentials[0];
-	        String password = credentials[1];
+	        String serverIP = credentials[0];
+	        String serverPort = credentials[1];
+	        String username = credentials[2];
+	        String password = credentials[3];
 	        System.out.println("Login as: " + username + " / " + password);
-	        
-	        // TODO send login credentials to server to check if account is valid
-	        boolean valid = true; // assume valid for now
-	        
-	        if (valid && onLoginOrRegisterSuccess != null) {
-	            onLoginOrRegisterSuccess.run();
+
+	        try (SmtpClient smtp = new SmtpClient(serverIP, Integer.parseInt(serverPort))) {
+	            boolean valid = smtp.login(username, password);
+
+	            if (valid) {
+	                JOptionPane.showMessageDialog(frame, "Login successful!");
+	                if (onLoginOrRegisterSuccess != null) {
+	                    onLoginOrRegisterSuccess.onSuccess(serverIP, serverPort, username);
+	                }
+	            } else {
+	                JOptionPane.showMessageDialog(frame, "Invalid username or password.",
+	                        "Login Failed", JOptionPane.ERROR_MESSAGE);
+	            }
+	        } catch (IOException e) {
+	            JOptionPane.showMessageDialog(frame, "Cannot reach server",
+	                    "Network Error", JOptionPane.ERROR_MESSAGE);
+	            e.printStackTrace();
 	        }
 	    }
 	}
@@ -110,20 +129,31 @@ public class Landing {
 	public void showRegisterDialog() {
 	    String[] credentials = RegisterDialog.askForRegister(frame);
 	    if (credentials != null) {
-	        String username = credentials[0];
-	        String password = credentials[1];
+	    	String serverIP = credentials[0];
+	    	String serverPort = credentials[1]; 
+	        String username = credentials[2];
+	        String password = credentials[3];
 	        System.out.println("Register new user: " + username + " / " + password);
-	        
-	        // TODO send register credentials to server to register new account
-	        // if server return signal "accountCreated", then proceed to open ClientUI.java
-	        
-	        boolean accountCreated = true; // assume valid for now
-	        
-	        if (accountCreated && onLoginOrRegisterSuccess != null) {
-	        	onLoginOrRegisterSuccess.run();
+
+	        try (SmtpClient smtp = new SmtpClient(serverIP, Integer.parseInt(serverPort))) {
+	            boolean accountCreated = smtp.register(username, password);
+
+	            if (accountCreated) {
+	                JOptionPane.showMessageDialog(frame, "Account created successfully!");
+	                if (onLoginOrRegisterSuccess != null) {
+	                    onLoginOrRegisterSuccess.onSuccess(serverIP, serverPort, username);
+	                }
+	            } else {
+	                JOptionPane.showMessageDialog(frame, "Registration failed", "Error", JOptionPane.ERROR_MESSAGE);
+	            }
+
+	        } catch (IOException e) {
+	            JOptionPane.showMessageDialog(frame, "Cannot reach server", "Network Error", JOptionPane.ERROR_MESSAGE);
+	            e.printStackTrace();
 	        }
-        }
+	    }
 	}
+
 	
 	public JFrame getFrame() {
 	    return frame;

@@ -1,0 +1,11 @@
+TITLE=Boima2 go do stuff
+FROM=Boima
+FROM_IP=192.168.1.9
+TO=Boima2@mailServer.com
+TIMESTAMP=01-11-2025 17:35:34
+CONTENT=
+Yep, i think i done it
+
+i wanna develop my stuff
+
+moving now.

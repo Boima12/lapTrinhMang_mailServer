@@ -1,9 +1,6 @@
 package server.ui;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
-import javax.swing.UIManager;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.DefaultListModel;
@@ -16,16 +13,15 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.JTabbedPane;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-
-import com.formdev.flatlaf.FlatLightLaf;
 import server.model.RecordListItem;
 import server.model.RecordListCellRenderer;
 
 public class ServerUI {
 
+	private String serverIP;
+	private int serverPort;
+	
 	private JFrame frame;
 	private JTextField searchUserTf;
 	private JButton searchUserBt;
@@ -42,63 +38,16 @@ public class ServerUI {
 	private JLabel totalRecordLb;
 	
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(new FlatLightLaf());
-					
-					ServerUI window = new ServerUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	public ServerUI() {
+	public ServerUI(String serverIP, int serverPort) {
+		this.serverIP = serverIP;
+		this.serverPort = serverPort;
+		
 		initialize();
 		
-		// delete later
-		addRecordListItem("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "This is record list");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "This is record_search list");
+		// delete later 
+//		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com -> railgunner@mailServer.com | Hello my friend");
+//		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com -> railgunner@mailServer.com | This is record_search list");
 		
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
-		addRecordListItem_search("08:08:53 06/10/2025", "boima@mailServer.com", "railgunner@mailServer.com", "Hello my friend");
 	}
 	
 	public void display() {
@@ -109,7 +58,7 @@ public class ServerUI {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1200, 700);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setTitle("Mail server");
+		frame.setTitle("Mail server - " + serverIP + ":" + serverPort);
 		frame.getContentPane().setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -145,30 +94,30 @@ public class ServerUI {
 		recordListScrollPane.setBounds(0, 25, 1156, 461);
 		recordListPanel.add(recordListScrollPane);
 		// double click pop up detailsDialog modal
-		recordList.addMouseListener(new MouseAdapter() {
-		    @Override
-		    public void mouseClicked(MouseEvent e) {
-		        if (e.getClickCount() == 2 && !e.isConsumed()) {
-		            e.consume();
-		            int index = recordList.locationToIndex(e.getPoint());
-		            if (index >= 0) {
-		                RecordListItem selected = recordListModel.getElementAt(index);
-
-		                // For now, assume you have a dummy size
-		                String size = "27 KB"; 
-		                
-		                DetailsDialog.showDetails(
-		                    frame, 
-		                    selected.getTitle(), 
-		                    selected.getFrom(), 
-		                    selected.getTo(), 
-		                    selected.getTimestamp(), 
-		                    size
-		                );
-		            }
-		        }
-		    }
-		});
+//		recordList.addMouseListener(new MouseAdapter() {
+//		    @Override
+//		    public void mouseClicked(MouseEvent e) {
+//		        if (e.getClickCount() == 2 && !e.isConsumed()) {
+//		            e.consume();
+//		            int index = recordList.locationToIndex(e.getPoint());
+//		            if (index >= 0) {
+//		                RecordListItem selected = recordListModel.getElementAt(index);
+//
+//		                // For now, assume you have a dummy size
+//		                String size = "27 KB"; 
+//		                
+//		                DetailsDialog.showDetails(
+//		                    frame, 
+//		                    selected.getTitle(), 
+//		                    selected.getFrom(), 
+//		                    selected.getTo(), 
+//		                    selected.getTimestamp(), 
+//		                    size
+//		                );
+//		            }
+//		        }
+//		    }
+//		});
 		
 		JPanel searchPane = new JPanel();
 		searchPane.setBounds(0, 0, 1166, 643);
@@ -281,37 +230,59 @@ public class ServerUI {
 		recordList_searchScrollPane.setBounds(0, 25, 1156, 461);
 		recordListPanel_search.add(recordList_searchScrollPane);
 		// double click pop up detailsDialog modal
-		recordList_search.addMouseListener(new MouseAdapter() {
-		    @Override
-		    public void mouseClicked(MouseEvent e) {
-		        if (e.getClickCount() == 2 && !e.isConsumed()) {
-		            e.consume();
-		            int index = recordList_search.locationToIndex(e.getPoint());
-		            if (index >= 0) {
-		                RecordListItem selected = recordListModel_search.getElementAt(index);
+//		recordList_search.addMouseListener(new MouseAdapter() {
+//		    @Override
+//		    public void mouseClicked(MouseEvent e) {
+//		        if (e.getClickCount() == 2 && !e.isConsumed()) {
+//		            e.consume();
+//		            int index = recordList_search.locationToIndex(e.getPoint());
+//		            if (index >= 0) {
+//		                RecordListItem selected = recordListModel_search.getElementAt(index);
+//
+//		                // For now, assume you have a dummy size
+//		                String size = "27 KB"; 
+//		                
+//		                DetailsDialog.showDetails(
+//		                    frame, 
+//		                    selected.getTitle(), 
+//		                    selected.getFrom(), 
+//		                    selected.getTo(), 
+//		                    selected.getTimestamp(), 
+//		                    size
+//		                );
+//		            }
+//		        }
+//		    }
+//		});
+	}
 
-		                // For now, assume you have a dummy size
-		                String size = "27 KB"; 
-		                
-		                DetailsDialog.showDetails(
-		                    frame, 
-		                    selected.getTitle(), 
-		                    selected.getFrom(), 
-		                    selected.getTo(), 
-		                    selected.getTimestamp(), 
-		                    size
-		                );
-		            }
-		        }
-		    }
-		});
-	}
-	
-	public void addRecordListItem(String timestamp, String from, String to, String title) {
-		recordListModel.addElement(new RecordListItem(timestamp, from, to, title));
-	}
-	
-	public void addRecordListItem_search(String timestamp, String from, String to, String title) {
-		recordListModel_search.addElement(new RecordListItem(timestamp, from, to, title));
-	}
+    public void addRecordListItem(String timestamp, String message) {
+        recordListModel.addElement(new RecordListItem(timestamp, message));
+        updateTotalRecordLabel();
+    }
+    
+    public void clearRecordList() {
+        recordListModel.clear();
+        updateTotalRecordLabel();
+    }
+    
+    private void updateTotalRecordLabel() {
+        int count = recordListModel.getSize();
+        totalRecordLb.setText("Total record(s): " + count);
+    }
+
+    public void addRecordListItem_search(String timestamp, String message) {
+        recordListModel_search.addElement(new RecordListItem(timestamp, message));
+        updateTotalRecordLabel_search();
+    }
+    
+    public void clearRecordList_search() {
+        recordListModel_search.clear();
+        updateTotalRecordLabel_search();
+    }
+    
+    private void updateTotalRecordLabel_search() {
+        int count = recordListModel_search.getSize();
+        totalRecordLb_search.setText("Total record(s): " + count);
+    }
 }

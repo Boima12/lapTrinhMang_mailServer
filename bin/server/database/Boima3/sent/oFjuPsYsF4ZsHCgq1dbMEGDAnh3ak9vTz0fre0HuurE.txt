@@ -1,0 +1,16 @@
+TITLE=Don't waste time, move on
+FROM=Boima3
+FROM_IP=192.168.1.9
+TO=Boima@mailServer.com
+TIMESTAMP=01-11-2025 20:54:25
+CONTENT=
+Dear myself,
+
+don't do mindless scrolling, just do what you wanna do
+
+i write this in 01/11/2025, i wanna live my life, just do
+
+there won't be any surge feeling, just press the button and remember your start and your end
+
+Best regard,
+Boima3

@@ -27,11 +27,7 @@ public class RecordListCellRenderer extends JPanel implements ListCellRenderer<R
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
 
-        recordLabel.setText(
-            "[" + value.getTimestamp() + "] " + 
-            value.getFrom() + " -> " + value.getTo() + 
-            " | " + value.getTitle()
-        );
+        recordLabel.setText("[" + value.getTimestamp() + "] " + value.getMessage());
 
         if (isSelected) {
             setBackground(new Color(230, 230, 255));
