@@ -14,7 +14,7 @@ public class LoginDialog {
         JPanel panel = new JPanel(new GridLayout(4, 2, 8, 8));
 
         JLabel ipLabel = new JLabel("Server IP:");
-        JTextField ipField = new JTextField("192.168.1.9", 20);
+        JTextField ipField = new JTextField("", 20);
 
         JLabel portLabel = new JLabel("Server Port:");
         JTextField portField = new JTextField("2525", 20);

@@ -15,7 +15,7 @@ public class RegisterDialog {
 
         // --- Server Information ---
         JLabel ipLabel = new JLabel("Server IP:");
-        JTextField ipField = new JTextField("192.168.1.9", 20);
+        JTextField ipField = new JTextField("", 20);
 
         JLabel portLabel = new JLabel("Server Port:");
         JTextField portField = new JTextField("2525", 20);
